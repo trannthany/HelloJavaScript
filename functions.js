@@ -47,3 +47,20 @@ function MyOutFit() {
 
 console.log(MyOutFit());
 console.log(outer_wear);
+
+function TimesFive(num) {
+    return num * 5;
+}
+var catcher = TimesFive(24)
+console.log(catcher);
+
+//if the function does not have a return statement then it will return undefined
+
+var sum = 0;
+function AddThree() {
+    sum = sum + 3;
+}
+
+catcher = AddThree();
+console.log(catcher)
+console.log(sum);
