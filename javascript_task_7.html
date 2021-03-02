@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript onclick event handler</title>
+    <script type="text/javascript">
+        function PromptQuantity() {
+            var quantity;
+            quantity = prompt("Please type a quantity greater than 0");
+            if (quantity <= 0) {
+                alert("Quantity is not greater than 0.");
+            } else {
+                alert("Thank you for entering a quantity greater than 0.");
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h1>JavaScript onclick event handler</h1>
+    <input type="button" value="Click to enter quantity" onclick="PromptQuantity();">
+</body>
+
+</html>
