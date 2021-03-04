@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="timetable_1/timetablejs.css" type="text/css">
+
+</head>
+
+<body>
+    <div class="timetable">
+
+    </div>
+    <script src="timetable_1/timetable.js">
+        var timetable = new Timetable()
+        timetable.setScope(9, 17)
+        timetable.useTwelveHour()
+        timetable.addLocation(['Silent Disco', 'Nile', 'Len Room', 'Maas Room'])
+        timetable.addEvent('Frankadelic', 'Nile', new Date(2015, 7, 17, 10, 45), new Date(2015, 7, 17, 12, 30), {
+            url: '#'
+        })
+
+        var renderer = new Timetable.Renderer(timetable)
+        renderer.draw('.timetable')       
+    </script>
+</body>
+
+</html>
