@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title>Pizza Order</title>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <h3 class="col-12 text-center">Pizza Order</h3>
+
+
+        </div>
+        <div class="row">
+            <div class="col">
+                <form id="form" novalidate class="needs-validation col-12 col-lg-8 offset-lg-2 row"
+                    enctype="multipart/form-data">
+                </form>
+                <div class="col-12 col-lg-8 offset-lg-2">
+                    <a class="w-25 btn btn-primary text-white d-flex" onclick="CreatePizza(this)">
+                        <i class="material-icons">Add New Pizza </i>
+
+                    </a>
+                </div>
+                <div id="subtotal_submit" class="col-6 mt-5 offset-2" hidden>
+                    <p>Subtotal: $</p>
+                    <a class="w-25 btn btn-secondary text-white d-flex" onclick="submit()">Order</a>
+                </div>
+            </div>
+            <div class="col">2 of 3</div>
+            <div class="col">3 of 3</div>
+        </div>
+    </div>
+    <script>
+
+        var subtotal = 0.00;
+
+        function submit() {
+            var selects = $('#form select');
+
+            var result = true;
+
+            $.each(selects, function (index, item) {
+                if ($(item).find('option:selected').val() == "") {
+                    $(item).addClass('is-invalid');
+                    result = false;
+                }
+            })
+
+            if (result) {
+
+                var subtotal = 0.00;
+
+                $.each($('.price'), function (index, item) {
+                    var value = $(item).val();
+                    subtotal += parseFloat(value);
+                });
+
+                alert('Done! Subtotal: $' + subtotal.toFixed(2));
+
+                $('#form').html('');
+                $('#subtotal_submit').prop('hidden', true);
+                $('#subtotal_submit p').text('');
+            }
+        }
+
+        function validate(obj) {
+            if ($(obj).find('option:selected').val() != "") {
+                $(obj).removeClass('is-invalid');
+            }
+        }
+
+        function selectOnClick(obj) {
+            var _count = 0;
+
+            $.each($(obj).parent().parent().find('select option:selected'), function (index, item) {
+                if ($(item).text() != 'Select Ingredient') {
+                    _count++;
+                }
+            });
+
+            if (_count > 0) {
+                $(obj).closest('.pizza').find('img').attr('src', '../img/pizza.png');
+            }
+            else {
+                $(obj).closest('.pizza').find('img').attr('src', '../img/pizza-sauce.png');
+            }
+            calcPrice(obj);
+        }
+
+        function CreatePizza() {
+            var indexOfPizza = $('form').find('.pizza').length;
+            var html = $('#order-templete').html().replace(/{}/g, indexOfPizza);
+            $('form').append(html);
+
+            $('#subtotal_submit').prop('hidden', false);
+
+            calcSubtotal();
+        }
+        function RemovePizza(obj) {
+
+            $(obj).parent().parent().parent().parent().remove();
+
+            var pizza_block = $('form');
+
+            var count = $('form').find('.pizza').length;
+
+            for (var i = 0; i < count; i++) {
+                var newTR = pizza_block.find(".pizza").eq(i).html().replace(/\[\d+\]/g, '[' + i + ']').replace(/_\d+/g, '_' + i);
+                pizza_block.find(".pizza").eq(i).html(newTR);
+            }
+
+            var length = $('.pizza').length;
+
+            if (length == 0) {
+                $('#subtotal_submit').prop('hidden', true);
+            }
+            calcSubtotal();
+        }
+        function EnableNextTag(obj, tagName) {
+            var tag = $(obj).parent().parent().find(tagName);
+            if ($(obj).val() != "") {
+                switch (tagName) {
+                    case ".Sauce":
+                        tag.find('select').prop('disabled', false);
+                        break;
+                    case ".Ingredients":
+                        tag.find('div').find('a').removeClass('disabled');
+                        tag.find('div').find('select').prop('disabled', false);
+
+                        var count = 0;
+
+                        $.each($(obj).parent().parent().find('.Ingredients select option:selected').text(), function (index, item) {
+                            if (item != 'Select Ingredient') {
+                                count++;
+                            }
+                        })
+
+                        if (count > 0) {
+                            $(obj).closest('.pizza').find('img').attr('src', '../img/pizza.png');
+                        }
+                        else {
+                            $(obj).closest('.pizza').find('img').attr('src', '../img/pizza-sauce.png');
+                        }
+                        break;
+                }
+            }
+            else if ($(obj).val() == "") {
+                switch (tagName) {
+                    case ".Sauce":
+                        tag.find('select').prop('disabled', true);
+                        break;
+                    case ".Ingredients":
+                        tag.find('div').find('a').addClass('disabled');
+                        tag.find('div').find('select').prop('disabled', true);
+                        $(obj).closest('.pizza').find('img').attr('src', '../img/pizza-base.png');
+                        break;
+                }
+            }
+
+            calcPrice(obj);
+        }
+
+        function CreateIngredients(obj, pizzaID) {
+
+            var indexOfIngreds = $(obj).parent().find('select').length;
+
+            var html = $('#ingreds-templete').html().replace(/{}/g, pizzaID).replace(/{`}/g, indexOfIngreds);
+
+            $(html).insertBefore(obj);
+
+            var last_select = $(obj).parent().find('select:last');
+
+            $.ajax({
+                type: 'POST',
+                url: '../Home/GetIngredientsList',
+                dataType: 'html',
+                success: function (data) {
+                    var json = JSON.parse(data);
+
+                    $.each(json, function (index, item) {
+                        $('<option value="2.00">' + item + '</option>').insertAfter(last_select.find('option:last'));
+                    })
+                },
+                error: function (xhr) {
+                    $("#body-content").html(xhr.responseText);
+                }
+            });
+
+            calcPrice(obj);
+        }
+        function RemoveIngredients(obj) {
+
+            var ingredient_selects = $(obj).parent().parent();
+
+            var ingreds = [];
+
+            var count = 0;
+
+            $.each(ingredient_selects.find('select option:selected'), function (index, item) {
+                if (index > 0) {
+                    ingreds[count] = $(item).text();
+                    count++;
+                }
+            })
+
+            $(obj).parent().remove();
+
+            var count = ingredient_selects.find('div').length;
+
+            for (var i = 0; i < count; i++) {
+                var newTR = ingredient_selects.find("div").eq(i).html().replace(/Ingredients\[\d+\]/g, 'Ingredients[' + i + ']').replace(/Ingredients_\d+/g, 'Ingredients_' + i);
+                ingredient_selects.find("div").eq(i).html(newTR);
+            }
+
+
+            $.each(ingredient_selects.find('select'), function (index, item) {
+                $(item).find('option:contains(' + ingreds[index] + ')').attr('selected', true);
+            });
+
+            var _count = 0;
+
+            $.each(ingredient_selects.find('select option:selected'), function (index, item) {
+                if ($(item).text() != 'Select Ingredient') {
+                    _count++;
+                }
+            });
+
+            if (_count > 0) {
+                ingredient_selects.closest('.pizza').find('div img').attr('src', '../img/pizza.png');
+            }
+            else {
+                ingredient_selects.closest('.pizza').find('div img').attr('src', '../img/pizza-sauce.png');
+            }
+
+            calcPrice(ingredient_selects);
+        }
+
+        function RadiosOnChange(obj) {
+            $(obj).val($(obj).prop('checked'));
+            if ($(obj).prop('checked')) {
+                var inputs = $(obj).parent().parent().find('input');
+                $.each(inputs, function (index, item) {
+                    if (item != obj) {
+                        $(item).prop('checked', false);
+                    }
+                });
+            }
+            calcPrice(obj);
+        }
+
+        function calcPrice(obj) {
+            var price = 7.00;
+            var currentPizza = $(obj).closest('.pizza');
+
+            $.each(currentPizza.find('.form-check-input'), function (index, item) {
+                if ($(item).attr('data-value') != "free" && $(item).prop("checked")) {
+                    price += parseFloat($(item).attr('data-value'));
+                }
+            });
+            $.each(currentPizza.find('div select option:selected'), function (index, item) {
+                if ($(item).val() != "free" && $(item).val() != "" && $(item).val() != null) {
+                    price += parseFloat($(item).val());
+                }
+            })
+
+            currentPizza.find('.price').val(price.toFixed(2));
+            currentPizza.find('h4').text('Pizza $' + price.toFixed(2));
+            calcSubtotal();
+        }
+
+        function calcSubtotal() {
+            var subtotal = 0.00;
+
+            $.each($('.price'), function (index, item) {
+                var value = $(item).val();
+                subtotal += parseFloat(value);
+            });
+
+            $('#subtotal_submit p').text("Subtotal: $" + subtotal.toFixed(2));
+        }</script>
+    <script id="order-templete" type="text/x-custom-templete">
+        <div class="row pizza">
+            <div class="col-lg-8 col-9">
+                <div class="row mt-3">
+                    <div class="col-12 row mb-3">
+                        <h4 class="text-left mb-0 pl-3">Pizza $7.00</h4>
+                        <a class="btn btn-danger btn-sm offset-3 text-white" onclick="RemovePizza(this)">Remove</a>
+                    </div>
+                    <label class="col-3">Size</label>
+                    <div class="form-check col-4">
+                        <input class="form-check-input" type="radio" name="Pizzas[{}].IsStandard" id="Pizzas_{}_IsStandard" onchange="RadiosOnChange(this)" checked value="" data-value="free" />
+                        <label class="form-check-label" for="Pizzas_{}_IsStandard">
+                            Standard
+                        </label>
+                    </div>
+                    <div class="form-check col-4 offset-1">
+                        <input class="form-check-input" type="radio" name="Pizzas[0].IsLegendary" id="Pizzas_{}_IsLegendary" onchange="RadiosOnChange(this)" value="" data-value="2.00" />
+                        <label class="form-check-label" for="Pizzas_{}_.IsLegendary">
+                            Legendary
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-3">Base</label>
+                    <select class="col-8 custom-select" id="Pizzas[{}].Base" name="Pizzas_{}_Base" onchange="EnableNextTag(this, '.Sauce');validate(this)" required>
+                        <option value="" selected>Select Pizza Base</option>
+                        <option value="free">Classic</option>
+                        <option value="2.00">Deep</option>
+                        <option value="free">Thin</option>
+                        <option value="2.00">Cheesy Crust</option>
+                    </select>
+                    <div class="col-8 offset-3 invalid-feedback">
+                        Please select a valid Pizza Base.
+                    </div>
+                </div>
+                <div class="form-group row Sauce">
+                    <label class="col-3">Sauce</label>
+                    <select class="col-8 custom-select" id="Pizzas[{}].Sauce" name="Pizzas_{}_Sauce" disabled onchange="EnableNextTag(this, '.Ingredients');validate(this)" required>
+                        <option value="" selected>Select Pizza Sauce</option>
+                        <option value="free">Pizza Sauce</option>
+                        <option value="free">Barbeque</option>
+                        <option value="free">Cranberry</option>
+                        <option value="free">Creamy Liquid Cheese</option>
+                    </select>
+                    <div class="col-8 offset-3 invalid-feedback">
+                        Please select a valid Pizza Sauce.
+                    </div>
+                </div>
+                <div class="form-group row Ingredients">
+                    <label class="col-3">Ingredients</label>
+                    <div class="col-8 pl-0 Ingredients-list">
+                        <a class="btn btn-secondary btn-sm mt-2 text-white d-flex disabled" onclick="CreateIngredients(this, {})">
+                            <i class="material-icons">add</i>
+                            <span> New Ingredients</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3 col-lg-4">
+                <img src="../img/pizza-base.png" height="300" width="300" />
+            </div>
+            <input class="price" id="Pizzas_{}_Price" name="Pizzas[{}].Price" value="7.00" hidden />
+        </div>
+    </script>
+    <script id="ingreds-templete" type="text/x-custom-templete">
+        <div class="row mt-1 pl-3">
+            <select class="col-8 custom-select" id="Pizzas[{}].Ingredients[{`}]" name="Pizzas_{}_Ingredients_{`}" onchange="selectOnClick(this);validate(this)" required>
+                <option value="" selected>Select Ingredient</option>
+            </select>
+            <div class="col-8 offset-3 invalid-feedback">
+                Please select a valid Ingredient.
+            </div>
+            <a class="offset-1 btn btn-danger btn-sm text-white d-flex" onclick="RemoveIngredients(this)" disabled>
+                Remove
+            </a>
+        </div>
+    </script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
