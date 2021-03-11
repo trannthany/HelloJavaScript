@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Object Model Methods</title>
+</head>
+
+<body>
+    <h1>DOM Programming Interface</h1>
+    <p id="demo"></p>
+
+    <script>
+        //finding element
+        document.getElementById("demo").innerHTML = "Hello World!"
+        var element1 = document.getElementsByTagName("name") //returns element by tag name
+        var element2 = document.getElementsByClassName("name") //returns element by class name
+        element1.innerHTML = "new html content"
+
+
+    </script>
+</body>
+
+</html>
